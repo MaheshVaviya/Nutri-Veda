@@ -17,6 +17,23 @@ class PatientController {
     }
   }
 
+  static async getAllPatients(req, res) {
+    try {
+      const patients = await Patient.findAll();
+      res.status(200).json({
+        success: true,
+        message: 'Patients retrieved successfully',
+        data: patients,
+        count: patients.length
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
   static async getPatientById(req, res) {
     try {
       const patient = await Patient.findById(req.params.id);

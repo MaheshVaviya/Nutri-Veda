@@ -10,6 +10,9 @@ const db = require('./src/config/database');
 const foodRoutes = require('./src/routes/food');
 const patientRoutes = require('./src/routes/patient');
 const dietChartRoutes = require('./src/routes/dietChart');
+const authRoutes = require('./src/routes/auth'); // Missing route
+const advancedFoodRoutes = require('./src/routes/advancedFood'); // Missing route
+const recommendationRoutes = require('./src/routes/recommendation'); // Missing route
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,7 +26,6 @@ app.use(express.urlencoded({ extended: true }));
 // Test database connection on startup
 async function initializeServer() {
   console.log('🚀 Initializing NutriVeda Backend...');
-  
   const dbConnected = await db.testConnection();
   if (!dbConnected) {
     console.error('❌ Failed to connect to database');
@@ -31,13 +33,35 @@ async function initializeServer() {
   }
 }
 
+// Base API route - provides information about available endpoints
+app.get('/api/v1', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'NutriVeda API v1',
+    version: '1.0.0',
+    endpoints: {
+      foods: '/api/v1/foods',
+      patients: '/api/v1/patients',
+      dietCharts: '/api/v1/diet-charts',
+      auth: '/api/v1/auth',
+      advancedFoods: '/api/v1/advanced-foods',
+      recommendations: '/api/v1/recommendations',
+      health: '/health'
+    },
+    documentation: 'Visit individual endpoints for available operations'
+  });
+});
+
 // Routes
 app.use('/api/v1/foods', foodRoutes);
 app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/diet-charts', dietChartRoutes);
+app.use('/api/v1/auth', authRoutes); // Added auth routes
+app.use('/api/v1/advanced-foods', advancedFoodRoutes); // Added advanced food routes
+app.use('/api/v1/recommendations', recommendationRoutes); // Added recommendation routes
 
 // Health check endpoint
-app.get( '/health', async (req, res) => {
+app.get('/health', async (req, res) => {
   const dbStatus = await db.testConnection();
   res.status(200).json({
     status: 'OK',

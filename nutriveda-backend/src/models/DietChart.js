@@ -157,6 +157,10 @@ class DietChart {
     return await db.findById(this.collection, id);
   }
 
+  static async findAll() {
+    return await db.findAll(this.collection);
+  }
+
   static async findByPatient(patientId) {
     return await db.findByField(this.collection, 'patientId', patientId);
   }

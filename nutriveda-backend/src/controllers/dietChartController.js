@@ -1,6 +1,23 @@
 const DietChart = require('../models/DietChart');
 
 class DietChartController {
+  static async getAllDietCharts(req, res) {
+    try {
+      const dietCharts = await DietChart.findAll();
+      res.status(200).json({
+        success: true,
+        message: 'Diet charts retrieved successfully',
+        data: dietCharts,
+        count: dietCharts.length
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
   static async createDietChart(req, res) {
     try {
       const dietChart = await DietChart.create(req.body);

@@ -218,10 +218,20 @@ class RecommendationController {
 
       res.status(200).json({
         success: true,
-        message: '# NutriVeda Advanced Features Implementation
+        message: '# NutriVeda Advanced Features Implementation',
+        data: {
+          nutritionalSummary,
+          ayurvedicAnalysis,
+          recommendations
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+}
 
-## 1. AUTHENTICATION SYSTEM
-
-### Install Additional Dependencies
-```bash
-npm install bcryptjs jsonwebtoken multer csv-parser
+module.exports = RecommendationController;

@@ -4,6 +4,21 @@ const AuthMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
+// Auth info endpoint
+router.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Authentication API',
+    endpoints: {
+      register: 'POST /api/v1/auth/register',
+      login: 'POST /api/v1/auth/login',
+      profile: 'GET /api/v1/auth/profile (requires token)',
+      updateProfile: 'PUT /api/v1/auth/profile (requires token)',
+      changePassword: 'POST /api/v1/auth/change-password (requires token)'
+    }
+  });
+});
+
 // Public routes
 router.post('/register', AuthController.registerValidation, AuthController.register);
 router.post('/login', AuthController.loginValidation, AuthController.login);
