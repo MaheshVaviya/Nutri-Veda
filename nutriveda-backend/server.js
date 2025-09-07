@@ -8,11 +8,10 @@ const db = require('./src/config/database');
 
 // Import routes
 const foodRoutes = require('./src/routes/food');
+const recipeRoutes = require('./src/routes/recipe');
 const patientRoutes = require('./src/routes/patient');
 const dietChartRoutes = require('./src/routes/dietChart');
 const authRoutes = require('./src/routes/auth'); // Missing route
-const advancedFoodRoutes = require('./src/routes/advancedFood'); // Missing route
-const recommendationRoutes = require('./src/routes/recommendation'); // Missing route
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,12 +40,10 @@ app.get('/api/v1', (req, res) => {
     version: '1.0.0',
     endpoints: {
       foods: '/api/v1/foods',
+      recipes: '/api/v1/recipes',
       patients: '/api/v1/patients',
       dietCharts: '/api/v1/diet-charts',
-      auth: '/api/v1/auth',
-      advancedFoods: '/api/v1/advanced-foods',
-      recommendations: '/api/v1/recommendations',
-      health: '/health'
+      auth: '/api/v1/auth'
     },
     documentation: 'Visit individual endpoints for available operations'
   });
@@ -54,23 +51,10 @@ app.get('/api/v1', (req, res) => {
 
 // Routes
 app.use('/api/v1/foods', foodRoutes);
+app.use('/api/v1/recipes', recipeRoutes);
 app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/diet-charts', dietChartRoutes);
 app.use('/api/v1/auth', authRoutes); // Added auth routes
-app.use('/api/v1/advanced-foods', advancedFoodRoutes); // Added advanced food routes
-app.use('/api/v1/recommendations', recommendationRoutes); // Added recommendation routes
-
-// Health check endpoint
-app.get('/health', async (req, res) => {
-  const dbStatus = await db.testConnection();
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    service: 'NutriVeda Backend',
-    database: dbStatus ? 'Connected' : 'Disconnected',
-    version: '1.0.0'
-  });
-});
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -96,8 +80,7 @@ app.listen(PORT, async () => {
   await initializeServer();
   console.log(`🚀 NutriVeda Backend running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-  console.log(`📖 API Base URL: http://localhost:${PORT}/api/v1`);
+  console.log(` API Base URL: http://localhost:${PORT}/api/v1`);
 });
 
 module.exports = app;
