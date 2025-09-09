@@ -39,6 +39,14 @@ class Patient {
       throw new Error(`Dosha must be one of: ${validDoshas.join(', ')}`);
     }
 
+    // Validate dietary habits if provided
+    if (patientData.dietary_habits) {
+      const validDietaryHabits = ['vegetarian', 'non-vegetarian'];
+      if (!validDietaryHabits.includes(patientData.dietary_habits)) {
+        throw new Error(`Dietary habits must be one of: ${validDietaryHabits.join(', ')}`);
+      }
+    }
+
     // Validate email format if provided
     if (patientData.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -137,6 +145,12 @@ class Patient {
       // Ayurvedic Profile
       dosha: patientData.dosha, // vata, pitta, kapha, vata-pitta, etc.
       
+      // Dietary Information
+      dietary_habits: patientData.dietary_habits || 'vegetarian', // vegetarian, non-vegetarian
+      
+      // Clinical Information
+      clinical_notes: patientData.clinical_notes || '',
+      
       // Health Conditions
       condition: Array.isArray(patientData.condition) ? patientData.condition : 
                 (patientData.condition ? [patientData.condition] : []),
@@ -176,6 +190,7 @@ class Patient {
       
       // Meta
       dietitianId: patientData.dietitianId || '',
+      created_by: patientData.created_by || patientData.dietitianId || '', // practitioner who created the record
       isActive: true
     };
     
@@ -198,6 +213,10 @@ class Patient {
 
   static async findByDosha(dosha) {
     return await db.findByField(this.collection, 'dosha', dosha);
+  }
+
+  static async findByPhone(phone) {
+    return await db.findByField(this.collection, 'phone', phone);
   }
 
   static async update(id, patientData) {

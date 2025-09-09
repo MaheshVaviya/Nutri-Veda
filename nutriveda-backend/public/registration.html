@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriVeda - Patient Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .error {
+            color: #d32f2f;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .step-title {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .patient-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .dosha-info {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 NutriVeda Patient Registration</h1>
+            <p>Step-by-step patient registration system</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 25%"></div>
+        </div>
+        <p id="progressText">Step 1 of 4 - Basic Information (25%)</p>
+
+        <!-- Error/Success Messages -->
+        <div id="messageArea"></div>
+
+        <form id="registrationForm">
+            <!-- Step 1: Basic Information -->
+            <div class="step active" id="step1">
+                <h3 class="step-title">👤 Step 1: Basic Information</h3>
+                
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="age">Age *</label>
+                    <input type="number" id="age" name="age" min="1" max="150" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gender">Gender *</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="9876543210" required>
+                </div>
+                
+                <div class="button-group">
+                    <div></div>
+                    <button type="button" class="btn-primary" onclick="nextStep(1)">Next Step →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Contact Information -->
+            <div class="step" id="step2">
+                <h3 class="step-title">📞 Step 2: Contact & Location</h3>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="patient@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address" rows="3" placeholder="Complete address"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="region">State/Region</label>
+                    <select id="region" name="region">
+                        <option value="General">General</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Delhi">Delhi</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Tamil Nadu">Tamil Nadu</option>
+                        <option value="Gujarat">Gujarat</option>
+                        <option value="West Bengal">West Bengal</option>
+                        <option value="Kerala">Kerala</option>
+                        <option value="Rajasthan">Rajasthan</option>
+                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="prevStep(2)">← Back</button>
+                    <button type="button" class="btn-primary" onclick="nextStep(2)">Next Step →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Health Profile -->
+            <div class="step" id="step3">
+                <h3 class="step-title">🏥 Step 3: Health & Ayurveda Profile</h3>
+                
+                <div class="form-group">
+                    <label for="dosha">Dosha Constitution *</label>
+                    <select id="dosha" name="dosha" required onchange="showDoshaInfo()">
+                        <option value="">Select Dosha</option>
+                        <option value="vata">Vata</option>
+                        <option value="pitta">Pitta</option>
+                        <option value="kapha">Kapha</option>
+                        <option value="vata-pitta">Vata-Pitta</option>
+                        <option value="pitta-kapha">Pitta-Kapha</option>
+                        <option value="vata-kapha">Vata-Kapha</option>
+                        <option value="tridoshic">Tridoshic</option>
+                    </select>
+                    <div id="doshaInfo" class="dosha-info" style="display: none;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dietary_habits">Dietary Habits</label>
+                    <select id="dietary_habits" name="dietary_habits">
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="non-vegetarian">Non-Vegetarian</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 20px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="height">Height (cm)</label>
+                        <input type="number" id="height" name="height" placeholder="170" onchange="calculateBMI()">
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label for="weight">Weight (kg)</label>
+                        <input type="number" id="weight" name="weight" placeholder="65" onchange="calculateBMI()">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>BMI & BMR: <span id="bmiDisplay">--</span></label>
+                    <small style="color: #666;">BMI = Body Mass Index | BMR = Basal Metabolic Rate (calories needed per day)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="weight_goal">Weight Goal *</label>
+                    <select id="weight_goal" name="weight_goal" required>
+                        <option value="">Select Goal</option>
+                        <option value="weight_loss">Weight Loss</option>
+                        <option value="weight_gain">Weight Gain</option>
+                        <option value="weight_maintenance">Weight Maintenance</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="allergies">Allergies (comma separated)</label>
+                    <input type="text" id="allergies" name="allergies" placeholder="peanuts, dust, pollen">
+                </div>
+                
+                <div class="form-group">
+                    <label for="condition">Medical Conditions (comma separated)</label>
+                    <input type="text" id="condition" name="condition" placeholder="diabetes, hypertension">
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="prevStep(3)">← Back</button>
+                    <button type="button" class="btn-primary" onclick="nextStep(3)">Next Step →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Health Profile -->
+            <div class="step" id="step4">
+                <h3 class="step-title">🏥 Step 4: Health Profile</h3>
+                
+                <div class="form-group">
+                    <label for="digestion">Digestion Pattern *</label>
+                    <select id="digestion" name="digestion" required>
+                        <option value="">Select Digestion</option>
+                        <option value="strong">Strong (Good appetite, quick digestion)</option>
+                        <option value="regular">Regular (Normal digestion)</option>
+                        <option value="irregular">Irregular (Variable appetite/digestion)</option>
+                        <option value="weak">Weak (Poor appetite, slow digestion)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="water_intake">Daily Water Intake (Liters) *</label>
+                    <input type="number" step="0.1" id="water_intake" name="water_intake" placeholder="2.5" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activity_level">Activity Level *</label>
+                    <select id="activity_level" name="activity_level" required>
+                        <option value="">Select Activity Level</option>
+                        <option value="sedentary">Sedentary (Little/no exercise)</option>
+                        <option value="light">Light (1-3 days/week)</option>
+                        <option value="moderate">Moderate (3-5 days/week)</option>
+                        <option value="active">Active (6-7 days/week)</option>
+                        <option value="very_active">Very Active (2x/day, intense)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sleep_pattern">Sleep Pattern *</label>
+                    <select id="sleep_pattern" name="sleep_pattern" required>
+                        <option value="">Select Sleep Pattern</option>
+                        <option value="early_riser">Early Riser (Sleep 9-10 PM, wake 5-6 AM)</option>
+                        <option value="regular">Regular (Sleep 10-11 PM, wake 6-7 AM)</option>
+                        <option value="night_owl">Night Owl (Sleep 11+ PM, wake 7+ AM)</option>
+                        <option value="irregular">Irregular (Variable sleep times)</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="prevStep(4)">← Back</button>
+                    <button type="button" class="btn-primary" onclick="nextStep(4)">Next Step →</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Lifestyle & Preferences -->
+            <div class="step" id="step5">
+                <h3 class="step-title">🎯 Step 5: Lifestyle & Preferences</h3>
+                
+                <div class="form-group">
+                    <label for="stress_level">Stress Level *</label>
+                    <select id="stress_level" name="stress_level" required>
+                        <option value="">Select Stress Level</option>
+                        <option value="low">Low (Rarely stressed)</option>
+                        <option value="moderate">Moderate (Occasionally stressed)</option>
+                        <option value="high">High (Frequently stressed)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="work_type">Work Type *</label>
+                    <select id="work_type" name="work_type" required>
+                        <option value="">Select Work Type</option>
+                        <option value="desk">Desk/Office Work</option>
+                        <option value="physical">Physical/Manual Work</option>
+                        <option value="mixed">Mixed (Desk + Physical)</option>
+                        <option value="creative">Creative/Artistic</option>
+                        <option value="outdoor">Outdoor Work</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cuisine_preference">Cuisine Preference *</label>
+                    <select id="cuisine_preference" name="cuisine_preference" required>
+                        <option value="">Select Cuisine</option>
+                        <option value="indian">General Indian</option>
+                        <option value="north-indian">North Indian</option>
+                        <option value="south-indian">South Indian</option>
+                        <option value="gujarati">Gujarati</option>
+                        <option value="bengali">Bengali</option>
+                        <option value="punjabi">Punjabi</option>
+                        <option value="rajasthani">Rajasthani</option>
+                        <option value="maharashtrian">Maharashtrian</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="prevStep(5)">← Back</button>
+                    <button type="button" class="btn-primary" onclick="nextStep(5)">Next Step →</button>
+                </div>
+            </div>
+
+            <!-- Step 6: Complete Registration -->
+            <div class="step" id="step6">
+                <h3 class="step-title">✅ Step 6: Complete Registration</h3>
+                
+                <div class="form-group">
+                    <label for="clinical_notes">Clinical Notes</label>
+                    <textarea id="clinical_notes" name="clinical_notes" rows="4" placeholder="Practitioner observations and notes"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="created_by">Practitioner ID *</label>
+                    <input type="text" id="created_by" name="created_by" placeholder="DIET001" required>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="prevStep(6)">← Back</button>
+                    <button type="button" class="btn-primary" onclick="completeRegistration()">Complete Registration ✅</button>
+                </div>
+            </div>
+
+            <!-- Success Step -->
+            <div class="step" id="success" style="text-align: center;">
+                <h3 style="color: #4CAF50;">🎉 Registration Completed!</h3>
+                <div id="successDetails"></div>
+                <button type="button" class="btn-primary" onclick="startNewRegistration()">Register Another Patient</button>
+            </div>
+        </form>
+
+        <div class="loading" id="loading">
+            <p>⏳ Processing...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/v1/patient-registration';
+        let currentStep = 1;
+        let sessionId = null;
+        let registrationData = {};
+
+        function showMessage(message, type = 'error') {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => messageArea.innerHTML = '', 5000);
+        }
+
+        function updateProgress(step) {
+            const progress = step === 'success' ? 100 : Math.round((step / 6) * 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            if (step === 'success') {
+                document.getElementById('progressText').textContent = 
+                    `Registration Complete - Success (100%)`;
+            } else {
+                document.getElementById('progressText').textContent = 
+                    `Step ${step} of 6 - ${getStepTitle(step)} (${progress}%)`;
+            }
+        }
+
+        function getStepTitle(step) {
+            const titles = {
+                1: 'Basic Information',
+                2: 'Contact & Location',
+                3: 'Physical Health',
+                4: 'Health Profile', 
+                5: 'Lifestyle & Preferences',
+                6: 'Complete Registration'
+            };
+            return titles[step];
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            const stepElement = document.getElementById(`step${step}`);
+            if (stepElement) {
+                stepElement.classList.add('active');
+                currentStep = step;
+                updateProgress(step);
+            } else {
+                console.error(`Step element step${step} not found`);
+            }
+        }
+
+        function nextStep(fromStep) {
+            if (fromStep === 1) submitStep1();
+            else if (fromStep === 2) submitStep2();
+            else if (fromStep === 3) submitStep3();
+            else if (fromStep === 4) submitStep4();
+            else if (fromStep === 5) submitStep5();
+        }
+
+        function prevStep(toStep) {
+            showStep(toStep - 1);
+        }
+
+        async function submitStep1() {
+            const formData = {
+                name: document.getElementById('name').value,
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                phone: document.getElementById('phone').value
+            };
+
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`${API_BASE}/register/step1`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.ok) {
+                    sessionId = result.sessionId;
+                    registrationData.basicInfo = result.data;
+                    showMessage(`✅ ${result.message}`, 'success');
+                    showStep(2);
+                } else {
+                    showMessage(`❌ ${result.message}`);
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showMessage(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function submitStep2() {
+            const formData = {
+                sessionId: sessionId,
+                email: document.getElementById('email').value,
+                address: document.getElementById('address').value,
+                region: document.getElementById('region').value
+            };
+
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`${API_BASE}/register/step2`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.ok) {
+                    registrationData.contactInfo = result.data;
+                    showMessage(`✅ ${result.message}`, 'success');
+                    showStep(3);
+                } else {
+                    showMessage(`❌ ${result.message}`);
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showMessage(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function submitStep3() {
+            const allergies = document.getElementById('allergies').value.split(',').map(a => a.trim()).filter(a => a);
+            const condition = document.getElementById('condition').value.split(',').map(c => c.trim()).filter(c => c);
+
+            const formData = {
+                sessionId: sessionId,
+                dosha: document.getElementById('dosha').value,
+                dietary_habits: document.getElementById('dietary_habits').value,
+                height: parseFloat(document.getElementById('height').value) || null,
+                weight: parseFloat(document.getElementById('weight').value) || null,
+                weight_goal: document.getElementById('weight_goal').value,
+                allergies: allergies,
+                condition: condition
+            };
+
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`${API_BASE}/register/step3`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.ok) {
+                    registrationData.healthProfile = result.data;
+                    showMessage(`✅ ${result.message}`, 'success');
+                    showStep(4);
+                } else {
+                    showMessage(`❌ ${result.message}`);
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showMessage(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function submitStep4() {
+            const formData = {
+                sessionId: sessionId,
+                digestion: document.getElementById('digestion').value,
+                water_intake: parseFloat(document.getElementById('water_intake').value),
+                activity_level: document.getElementById('activity_level').value,
+                sleep_pattern: document.getElementById('sleep_pattern').value
+            };
+
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`${API_BASE}/register/step4`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.ok) {
+                    registrationData.healthMetrics = result.data;
+                    showMessage(`✅ ${result.message}`, 'success');
+                    showStep(5);
+                } else {
+                    showMessage(`❌ ${result.message}`);
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showMessage(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function submitStep5() {
+            const formData = {
+                sessionId: sessionId,
+                stress_level: document.getElementById('stress_level').value,
+                work_type: document.getElementById('work_type').value,
+                cuisine_preference: document.getElementById('cuisine_preference').value
+            };
+
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`${API_BASE}/register/step5`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.ok) {
+                    registrationData.lifestyle = result.data;
+                    showMessage(`✅ ${result.message}`, 'success');
+                    showStep(6);
+                } else {
+                    showMessage(`❌ ${result.message}`);
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showMessage(`❌ Error: ${error.message}`);
+            }
+        }
+
+        async function completeRegistration() {
+            const clinicalNotesElement = document.getElementById('clinical_notes');
+            const createdByElement = document.getElementById('created_by');
+            
+            if (!clinicalNotesElement || !createdByElement) {
+                showMessage('❌ Form elements not found. Please refresh the page.');
+                return;
+            }
+            
+            const formData = {
+                sessionId: sessionId,
+                clinical_notes: clinicalNotesElement.value,
+                created_by: createdByElement.value,
+                basicInfo: registrationData.basicInfo,
+                contactInfo: registrationData.contactInfo,
+                healthProfile: registrationData.healthProfile
+            };
+
+            try {
+                const loadingElement = document.getElementById('loading');
+                if (loadingElement) loadingElement.style.display = 'block';
+                
+                const response = await fetch(`${API_BASE}/register/step6`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (loadingElement) loadingElement.style.display = 'none';
+
+                if (response.ok) {
+                    const patient = result.data.patient;
+                    const successDetailsElement = document.getElementById('successDetails');
+                    if (successDetailsElement) {
+                        successDetailsElement.innerHTML = `
+                            <div class="patient-summary">
+                                <h4>Patient Details:</h4>
+                                <p><strong>ID:</strong> ${patient.id}</p>
+                                <p><strong>Name:</strong> ${patient.name}</p>
+                                <p><strong>Age:</strong> ${patient.age}</p>
+                                <p><strong>Dosha:</strong> ${patient.dosha}</p>
+                                <p><strong>Diet:</strong> ${patient.dietary_habits}</p>
+                                <p><strong>BMI:</strong> ${patient.bmi || 'N/A'}</p>
+                                <p><strong>BMR:</strong> ${patient.bmr || 'N/A'} cal/day</p>
+                            </div>
+                            <div class="pdf-actions" style="margin: 20px 0;">
+                                <button onclick="generatePDF('${patient.id}')" class="btn-primary" style="background: #4CAF50; margin-right: 10px;">
+                                    📋 Generate Diet Plan PDF
+                                </button>
+                                <button onclick="resetForm()" class="btn-secondary" style="background: #2196F3;">
+                                    ➕ Register New Patient
+                                </button>
+                            </div>
+                            <p><strong>Next Actions:</strong> ${result.data.nextActions.join(', ')}</p>
+                        `;
+                    }
+                    updateProgress('success'); // Show 100% completion
+                    showStep('success');
+                    
+                    // Auto-generate PDF after 3 seconds
+                    showMessage('✅ Registration completed! Auto-generating PDF in 3 seconds...', 'success');
+                    setTimeout(() => {
+                        generatePDF(patient.id);
+                    }, 3000);
+                } else {
+                    showMessage(`❌ ${result.message}`);
+                }
+            } catch (error) {
+                const loadingElement = document.getElementById('loading');
+                if (loadingElement) loadingElement.style.display = 'none';
+                showMessage(`❌ Error: ${error.message}`);
+            }
+        }
+
+        function calculateBMI() {
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            
+            if (height && weight) {
+                // Calculate BMI
+                const heightInMeters = height / 100;
+                const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2);
+                
+                // Calculate BMR using Mifflin-St Jeor Equation
+                const age = parseFloat(document.getElementById('age').value);
+                const gender = document.getElementById('gender').value;
+                let bmr = null;
+                
+                if (age && gender) {
+                    if (gender === 'male') {
+                        bmr = Math.round(10 * weight + 6.25 * height - 5 * age + 5);
+                    } else if (gender === 'female') {
+                        bmr = Math.round(10 * weight + 6.25 * height - 5 * age - 161);
+                    }
+                }
+                
+                document.getElementById('bmiDisplay').innerHTML = `
+                    BMI: ${bmi} | BMR: ${bmr ? bmr + ' calories/day' : 'N/A'}
+                `;
+            }
+        }
+
+        function showDoshaInfo() {
+            const dosha = document.getElementById('dosha').value;
+            const info = document.getElementById('doshaInfo');
+            
+            const doshaDescriptions = {
+                'vata': 'Air element - Light, mobile, cold. Characteristics: Thin build, quick mind, variable appetite.',
+                'pitta': 'Fire element - Hot, intense, sharp. Characteristics: Medium build, strong digestion, focused mind.',
+                'kapha': 'Earth/Water element - Heavy, stable, cold. Characteristics: Large build, slow metabolism, calm nature.',
+                'vata-pitta': 'Combination of Air and Fire elements.',
+                'pitta-kapha': 'Combination of Fire and Earth/Water elements.',
+                'vata-kapha': 'Combination of Air and Earth/Water elements.',
+                'tridoshic': 'Balanced combination of all three doshas - rare and ideal.'
+            };
+            
+            if (dosha && doshaDescriptions[dosha]) {
+                info.textContent = doshaDescriptions[dosha];
+                info.style.display = 'block';
+            } else {
+                info.style.display = 'none';
+            }
+        }
+
+        function startNewRegistration() {
+            location.reload();
+        }
+
+        // PDF Generation Function
+        async function generatePDF(patientId) {
+            try {
+                showMessage('🔄 Generating PDF...', 'info');
+                
+                const response = await fetch(`/api/v1/pdf/generate/${patientId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showMessage('✅ PDF generated successfully!', 'success');
+                    
+                    // Show download option
+                    const successDetailsElement = document.getElementById('successDetails');
+                    if (successDetailsElement) {
+                        const downloadButton = `
+                            <div style="margin: 10px 0; padding: 15px; background: #e8f5e8; border-radius: 5px;">
+                                <p><strong>📋 Diet Plan PDF Ready!</strong></p>
+                                <a href="${result.data.downloadUrl}" 
+                                   download="${result.data.fileName}" 
+                                   class="btn-primary" 
+                                   style="display: inline-block; padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+                                    📥 Download PDF
+                                </a>
+                                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                                    Generated for: ${result.data.patientName}<br>
+                                    Generated at: ${new Date(result.data.generatedAt).toLocaleString()}
+                                </p>
+                            </div>
+                        `;
+                        successDetailsElement.innerHTML += downloadButton;
+                    }
+                    
+                    // Auto-download the PDF
+                    setTimeout(() => {
+                        const link = document.createElement('a');
+                        link.href = result.data.downloadUrl;
+                        link.download = result.data.fileName;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }, 1000);
+                    
+                } else {
+                    showMessage(`❌ Error generating PDF: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`❌ Error generating PDF: ${error.message}`, 'error');
+            }
+        }
+
+        // Reset form function
+        function resetForm() {
+            if (confirm('Are you sure you want to start a new registration? All current data will be lost.')) {
+                sessionId = null;
+                registrationData = {};
+                showStep(1);
+                updateProgress(1);
+                showMessage('', '');
+                // Clear all form fields
+                document.querySelectorAll('input, select, textarea').forEach(element => {
+                    element.value = '';
+                });
+            }
+        }
+
+        // Initialize
+        updateProgress(1);
+    </script>
+</body>
+</html>

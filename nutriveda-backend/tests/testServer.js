@@ -93,6 +93,9 @@ class NutriVedaTester {
       phone: "9876543210",
       email: "patient@test.com",
       dosha: "vata",
+      dietary_habits: "vegetarian",
+      clinical_notes: "Test patient for new fields validation",
+      created_by: "DIET001",
       condition: ["stress", "digestive issues"],
       allergies: ["peanuts"],
       digestion: "weak",
@@ -124,6 +127,8 @@ class NutriVedaTester {
     this.createdPatientId = response.data.data.id;
     console.log(`   Created patient with ID: ${this.createdPatientId}`);
     console.log(`   Calculated BMI: ${response.data.data.bmi}`);
+    console.log(`   Dietary habits: ${response.data.data.dietary_habits}`);
+    console.log(`   Created by: ${response.data.data.created_by}`);
   }
 
   async testCreateDietChart() {
@@ -240,6 +245,48 @@ class NutriVedaTester {
     console.log(`   Found ${response.data.count} diet charts for patient`);
   }
 
+  async testPatientFieldValidation() {
+    // Test invalid dietary habits
+    const invalidPatientData = {
+      name: "Invalid Patient",
+      age: 25,
+      gender: "male",
+      dosha: "pitta",
+      dietary_habits: "invalid_diet" // Should fail validation
+    };
+
+    try {
+      await axios.post(`${BASE_URL}/api/v1/patients`, invalidPatientData);
+      throw new Error('Expected validation error for invalid dietary habits');
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        console.log(`   ✓ Correctly rejected invalid dietary habits`);
+      } else {
+        throw error;
+      }
+    }
+
+    // Test valid non-vegetarian patient
+    const validPatientData = {
+      name: "Non-Veg Patient",
+      age: 35,
+      gender: "male",
+      dosha: "kapha",
+      dietary_habits: "non-vegetarian",
+      clinical_notes: "Prefers non-vegetarian diet",
+      created_by: "DIET002"
+    };
+
+    const response = await axios.post(`${BASE_URL}/api/v1/patients`, validPatientData);
+    
+    if (response.status !== 201) {
+      throw new Error(`Expected status 201, got ${response.status}`);
+    }
+
+    console.log(`   ✓ Successfully created non-vegetarian patient`);
+    console.log(`   Dietary habits: ${response.data.data.dietary_habits}`);
+  }
+
   async runAllTests() {
     console.log('🧪 Starting NutriVeda Backend Tests...\\n');
     
@@ -247,6 +294,7 @@ class NutriVedaTester {
     await this.runTest('Create Food', () => this.testCreateFood());
     await this.runTest('Get All Foods', () => this.testGetAllFoods());
     await this.runTest('Create Patient', () => this.testCreatePatient());
+    await this.runTest('Patient Field Validation', () => this.testPatientFieldValidation());
     await this.runTest('Create Diet Chart', () => this.testCreateDietChart());
     await this.runTest('Search Foods by Dosha', () => this.testSearchFoodsByDosha());
     await this.runTest('Get Diet Charts by Patient', () => this.testGetDietChartsByPatient());
