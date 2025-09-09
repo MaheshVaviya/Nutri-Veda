@@ -21,6 +21,31 @@ const DietPlanGenerator = () => {
   const [editMode, setEditMode] = useState(false);
   const [message, setMessage] = useState('');
   const [expandedDays, setExpandedDays] = useState(new Set([1])); // Day 1 expanded by default
+  const [availablePatients, setAvailablePatients] = useState([]);
+  const [loadingPatients, setLoadingPatients] = useState(false);
+
+  // Fetch available patients when no patient is selected
+  useEffect(() => {
+    const fetchAvailablePatients = async () => {
+      if (patientId) return; // Don't fetch if patient is already selected
+      
+      setLoadingPatients(true);
+      try {
+        const response = await fetch(`${API_BASE}/patients`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setAvailablePatients(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setLoadingPatients(false);
+      }
+    };
+
+    fetchAvailablePatients();
+  }, [patientId]);
 
   useEffect(() => {
     const fetchExistingDietChart = async () => {
@@ -186,16 +211,70 @@ const DietPlanGenerator = () => {
 
   if (!patientId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">No Patient Selected</h2>
-          <p className="text-gray-600 mb-6">Please select a patient to generate diet plan.</p>
-          <button
-            onClick={() => navigate('/patients')}
-            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            Go to Patients
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Select a Patient</h2>
+          <p className="text-gray-600 mb-8 text-center">Choose a patient to generate their personalized diet plan.</p>
+          
+          {loadingPatients ? (
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+              <p className="mt-2 text-gray-600">Loading patients...</p>
+            </div>
+          ) : availablePatients.length === 0 ? (
+            <div className="text-center bg-white p-8 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold text-gray-700 mb-4">No Patients Found</h3>
+              <p className="text-gray-600 mb-6">Start by registering your first patient.</p>
+              <button
+                onClick={() => navigate('/patients/register')}
+                className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Register New Patient
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {availablePatients.map((patient) => (
+                <div key={patient.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-orange-500">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">{patient.name}</h3>
+                    <span className="text-sm bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                      {patient.dosha || 'Unknown'}
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <p><strong>Age:</strong> {patient.age} years</p>
+                    <p><strong>Gender:</strong> {patient.gender}</p>
+                    {patient.bmi && <p><strong>BMI:</strong> {patient.bmi}</p>}
+                    {patient.condition && patient.condition.length > 0 && (
+                      <p><strong>Conditions:</strong> {patient.condition.join(', ')}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => navigate(`/diet-plans?patientId=${patient.id}&name=${encodeURIComponent(patient.name)}`)}
+                    className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    Generate Diet Plan
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <div className="text-center mt-8">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors mr-4"
+            >
+              Back to Dashboard
+            </button>
+            <button
+              onClick={() => navigate('/patients/register')}
+              className="px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+            >
+              Register New Patient
+            </button>
+          </div>
         </div>
       </div>
     );
