@@ -4,7 +4,7 @@ class Patient {
   static collection = 'patients';
 
   static validatePatient(patientData) {
-    const required = ['name', 'age', 'gender', 'dosha'];
+    const required = ['name', 'age', 'gender'];
     
     // Check required fields
     for (let field of required) {
@@ -33,10 +33,13 @@ class Patient {
       throw new Error(`Gender must be one of: ${validGenders.join(', ')}`);
     }
 
-    // Validate dosha
-    const validDoshas = ['vata', 'pitta', 'kapha', 'vata-pitta', 'pitta-kapha', 'vata-kapha', 'tridoshic'];
-    if (!validDoshas.includes(patientData.dosha)) {
-      throw new Error(`Dosha must be one of: ${validDoshas.join(', ')}`);
+    // Validate dosha if provided
+    const dosha = patientData.dosha || patientData.doshaType;
+    if (dosha) {
+      const validDoshas = ['vata', 'pitta', 'kapha', 'vata_pitta', 'pitta_kapha', 'vata_kapha', 'tridoshic', 'unknown'];
+      if (!validDoshas.includes(dosha)) {
+        throw new Error(`Dosha must be one of: ${validDoshas.join(', ')}`);
+      }
     }
 
     // Validate dietary habits if provided
@@ -136,6 +139,7 @@ class Patient {
       name: patientData.name,
       age: parseInt(patientData.age),
       gender: patientData.gender, // male, female, other
+      occupation: patientData.occupation || '',
       
       // Contact Info
       phone: patientData.phone || '',
@@ -143,16 +147,21 @@ class Patient {
       address: patientData.address || '',
       
       // Ayurvedic Profile
-      dosha: patientData.dosha, // vata, pitta, kapha, vata-pitta, etc.
+      dosha: patientData.dosha || patientData.doshaType || 'unknown', // vata, pitta, kapha, vata_pitta, etc.
       
       // Dietary Information
-      dietary_habits: patientData.dietary_habits || 'vegetarian', // vegetarian, non-vegetarian
+      dietary_habits: patientData.dietary_habits || patientData.dietType || 'vegetarian', // vegetarian, non-vegetarian
+      mealsPerDay: patientData.mealsPerDay || 3,
+      foodPreferences: Array.isArray(patientData.foodPreferences) ? patientData.foodPreferences : [],
+      alcoholConsumption: patientData.alcoholConsumption || 'never',
+      smokingHabits: patientData.smokingHabits || 'never',
       
       // Clinical Information
-      clinical_notes: patientData.clinical_notes || '',
+      clinical_notes: patientData.clinical_notes || patientData.additionalNotes || '',
       
       // Health Conditions
       condition: Array.isArray(patientData.condition) ? patientData.condition : 
+                Array.isArray(patientData.healthConditions) ? patientData.healthConditions :
                 (patientData.condition ? [patientData.condition] : []),
       
       // Allergies & Restrictions
@@ -160,7 +169,7 @@ class Patient {
                 (patientData.allergies ? [patientData.allergies] : []),
       
       // Digestive Health
-      digestion: patientData.digestion || 'regular', // strong, weak, irregular, regular
+      digestion: patientData.digestion || patientData.digestiveHealth || 'regular', // strong, weak, irregular, regular
       waterIntake: parseFloat(patientData.waterIntake || 2.5), // liters per day
       
       // Lifestyle
@@ -168,21 +177,36 @@ class Patient {
         activityLevel: patientData.lifestyle?.activityLevel || patientData.activityLevel || 'moderate',
         sleepPattern: patientData.lifestyle?.sleepPattern || patientData.sleepPattern || 'regular',
         stressLevel: patientData.lifestyle?.stressLevel || patientData.stressLevel || 'moderate',
-        workType: patientData.lifestyle?.workType || patientData.workType || 'desk'
+        workType: patientData.lifestyle?.workType || patientData.workType || 'desk',
+        energyLevels: patientData.energyLevels || 'moderate',
+        menstrualCycle: patientData.menstrualCycle || ''
       },
       
       // Medical History
       history: {
         previousConditions: patientData.history?.previousConditions || [],
-        currentMedications: patientData.history?.currentMedications || [],
+        currentMedications: Array.isArray(patientData.currentMedications) ? patientData.currentMedications : [],
         surgeries: patientData.history?.surgeries || [],
-        familyHistory: patientData.history?.familyHistory || []
+        familyHistory: patientData.history?.familyHistory || [],
+        previousDiets: patientData.previousDiets || '',
+        supplements: patientData.supplements || '',
+        exerciseRoutine: patientData.exerciseRoutine || ''
+      },
+      
+      // Goals
+      goals: {
+        healthGoals: Array.isArray(patientData.healthGoals) ? patientData.healthGoals : [],
+        targetWeight: parseFloat(patientData.targetWeight || 0),
+        timeframe: patientData.timeframe || '',
+        budgetRange: patientData.budgetRange || '',
+        cookingTime: patientData.cookingTime || ''
       },
       
       // Physical Stats
       height: parseFloat(patientData.height || 0),
       weight: parseFloat(patientData.weight || 0),
-      bmi: 0, // Will be calculated
+      bmi: parseFloat(patientData.bmi || 0), // Will be calculated or use provided
+      bmr: parseFloat(patientData.bmr || 0),
       
       // Regional Preferences
       region: patientData.region || 'general',
@@ -191,7 +215,9 @@ class Patient {
       // Meta
       dietitianId: patientData.dietitianId || '',
       created_by: patientData.created_by || patientData.dietitianId || '', // practitioner who created the record
-      isActive: true
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     
     // Calculate BMI if height and weight provided

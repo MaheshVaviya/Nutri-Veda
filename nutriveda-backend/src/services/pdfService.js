@@ -1,18 +1,23 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const DietChart = require('../models/DietChart');
 
 class PDFService {
   static async generateDietPlanPDF(patientData, outputPath = null) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
+        // Fetch the AI-generated diet chart
+        const dietChart = await DietChart.findOne({ patientId: patientData._id }).sort({ createdAt: -1 });
+        
         const doc = new PDFDocument({ 
           size: 'A4',
-          margins: { top: 50, bottom: 50, left: 50, right: 50 }
+          margins: { top: 50, bottom: 50, left: 50, right: 50 },
+          bufferPages: true
         });
 
         // Set up output path
-        const fileName = outputPath || `diet_plan_${patientData.id}_${Date.now()}.pdf`;
+        const fileName = outputPath || `diet_plan_${patientData._id}_${Date.now()}.pdf`;
         const filePath = path.join(__dirname, '../../temp', fileName);
 
         // Ensure temp directory exists
@@ -27,7 +32,13 @@ class PDFService {
         // Generate PDF content
         this.addHeader(doc);
         this.addPatientDetails(doc, patientData);
-        this.addDietPlanTemplate(doc);
+        
+        if (dietChart && dietChart.dietPlan) {
+          this.addAIDietPlan(doc, dietChart.dietPlan);
+        } else {
+          this.addDietPlanTemplate(doc);
+        }
+        
         this.addFooter(doc);
 
         doc.end();
@@ -50,29 +61,183 @@ class PDFService {
     });
   }
 
-static addHeader(doc) {
-    const logoPath = path.join('../../assets/images/logo.png');
-
-
-    // Add logo if it exists
-    if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, 50, 40, { width: 60 }); // Logo at top-left
-    }
-
-    // Move title slightly to the right to avoid overlap with logo
+  static addHeader(doc) {
+    // NutriVeda Header with colors
     doc.fontSize(24)
-        .fillColor('#2c5530')
-        .text('NutriVeda - Ayurvedic Diet Plan', 120, 50, { align: 'left' });
+        .fillColor('#059669')
+        .text('🌿 NutriVeda', 50, 50, { align: 'center' });
+    
+    doc.fontSize(16)
+        .fillColor('#065f46')
+        .text('Personalized Ayurvedic Diet Plan', 50, 80, { align: 'center' });
     
     doc.fontSize(12)
-        .fillColor('#666')
-        .text(`Generated on: ${new Date().toLocaleDateString()}`, 120, 80, { align: 'left' });
+        .fillColor('#6b7280')
+        .text(`Generated on: ${new Date().toLocaleDateString()}`, 50, 105, { align: 'center' });
     
-    doc.moveTo(50, 100)
-        .lineTo(545, 100)
-        .stroke('#2c5530');
+    doc.moveTo(50, 125)
+        .lineTo(545, 125)
+        .strokeColor('#059669')
+        .lineWidth(2)
+        .stroke();
     
     doc.moveDown(2);
+  }
+
+  static addAIDietPlan(doc, dietPlan) {
+    let yPosition = doc.y + 20;
+
+    // General Guidelines
+    if (dietPlan.general_guidelines && dietPlan.general_guidelines.length > 0) {
+      doc.fontSize(16)
+         .fillColor('#065f46')
+         .text('General Guidelines', 50, yPosition);
+      
+      yPosition += 25;
+      doc.fontSize(11)
+         .fillColor('#374151');
+      
+      dietPlan.general_guidelines.forEach((guideline) => {
+        if (yPosition > 750) {
+          doc.addPage();
+          yPosition = 50;
+        }
+        doc.text(`• ${guideline}`, 70, yPosition);
+        yPosition += 15;
+      });
+      
+      yPosition += 20;
+    }
+
+    // Ayurvedic Tips
+    if (dietPlan.ayurvedic_tips && dietPlan.ayurvedic_tips.length > 0) {
+      if (yPosition > 700) {
+        doc.addPage();
+        yPosition = 50;
+      }
+      
+      doc.fontSize(16)
+         .fillColor('#065f46')
+         .text('🌿 Ayurvedic Tips', 50, yPosition);
+      
+      yPosition += 25;
+      doc.fontSize(11)
+         .fillColor('#374151');
+      
+      dietPlan.ayurvedic_tips.forEach((tip) => {
+        if (yPosition > 750) {
+          doc.addPage();
+          yPosition = 50;
+        }
+        doc.text(`• ${tip}`, 70, yPosition);
+        yPosition += 15;
+      });
+      
+      yPosition += 30;
+    }
+
+    // 14-Day Meal Plan
+    if (dietPlan.days && dietPlan.days.length > 0) {
+      if (yPosition > 650) {
+        doc.addPage();
+        yPosition = 50;
+      }
+
+      doc.fontSize(18)
+         .fillColor('#059669')
+         .text('14-Day Meal Plan', 50, yPosition);
+      
+      yPosition += 30;
+
+      dietPlan.days.forEach((day) => {
+        // Check if we need a new page
+        if (yPosition > 600) {
+          doc.addPage();
+          yPosition = 50;
+        }
+
+        // Day header
+        doc.fontSize(14)
+           .fillColor('#f59e0b')
+           .text(`Day ${day.day}${day.date ? ` - ${day.date}` : ''}`, 50, yPosition);
+        
+        if (day.total_calories) {
+          doc.fontSize(10)
+             .fillColor('#6b7280')
+             .text(`Total: ${day.total_calories} calories | ${day.dosha_balance || ''}`, 200, yPosition + 2);
+        }
+
+        yPosition += 25;
+
+        // Meals
+        const meals = ['breakfast', 'morning_snack', 'lunch', 'evening_snack', 'dinner'];
+        const mealTitles = {
+          breakfast: '🌅 Breakfast',
+          morning_snack: '☕ Morning Snack',
+          lunch: '🍽️ Lunch',
+          evening_snack: '🍎 Evening Snack',
+          dinner: '🌙 Dinner'
+        };
+
+        meals.forEach(mealType => {
+          if (day.meals[mealType]) {
+            const meal = day.meals[mealType];
+            
+            // Check if we need a new page
+            if (yPosition > 720) {
+              doc.addPage();
+              yPosition = 50;
+            }
+
+            doc.fontSize(12)
+               .fillColor('#059669')
+               .text(mealTitles[mealType], 70, yPosition);
+            
+            if (meal.timing) {
+              doc.fontSize(9)
+                 .fillColor('#6b7280')
+                 .text(`(${meal.timing})`, 170, yPosition + 2);
+            }
+
+            yPosition += 18;
+
+            // Meal items
+            if (meal.items && meal.items.length > 0) {
+              doc.fontSize(10)
+                 .fillColor('#374151');
+              
+              meal.items.forEach(item => {
+                if (yPosition > 750) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.text(`  • ${item}`, 90, yPosition);
+                yPosition += 12;
+              });
+            }
+
+            // Calories and notes
+            if (meal.calories) {
+              doc.fontSize(9)
+                 .fillColor('#6b7280')
+                 .text(`Calories: ${meal.calories}`, 90, yPosition);
+              yPosition += 12;
+            }
+            
+            if (meal.ayurvedic_notes) {
+              doc.fontSize(9)
+                 .fillColor('#065f46')
+                 .text(`💡 ${meal.ayurvedic_notes}`, 90, yPosition);
+              yPosition += 12;
+            }
+
+            yPosition += 10;
+          }
+        });
+
+        yPosition += 15;
+      });
+    }
   }
 
   static addPatientDetails(doc, patient) {
@@ -238,13 +403,24 @@ static addHeader(doc) {
   }
 
   static addFooter(doc) {
-    doc.fontSize(8)
-       .fillColor('#666')
-       .text('This diet plan template will be customized based on your Ayurvedic constitution and health goals.', 
-             50, 750, { align: 'center', width: 495 });
-    
-    doc.text('For questions or modifications, please consult your Ayurvedic practitioner.', 
-             50, 765, { align: 'center', width: 495 });
+    // Add footer to all pages
+    const pages = doc.bufferedPageRange();
+    for (let i = 0; i < pages.count; i++) {
+      doc.switchToPage(i);
+      
+      // Footer line
+      doc.moveTo(50, 770)
+         .lineTo(545, 770)
+         .strokeColor('#e5e7eb')
+         .lineWidth(1)
+         .stroke();
+      
+      // Footer text
+      doc.fontSize(8)
+         .fillColor('#6b7280')
+         .text('Generated by NutriVeda - AI-Powered Ayurvedic Nutrition', 50, 780)
+         .text(`Page ${i + 1} of ${pages.count}`, 450, 780);
+    }
   }
 
   static async cleanupTempFiles(olderThanMinutes = 60) {

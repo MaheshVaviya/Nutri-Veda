@@ -13,10 +13,11 @@ const patientRoutes = require('./src/routes/patient');
 const patientRegistrationRoutes = require('./src/routes/patientRegistration');
 const dietChartRoutes = require('./src/routes/dietChart');
 const authRoutes = require('./src/routes/auth'); // Missing route
-const pdfRoutes = require('./src/routes/pdf'); // New PDF route
+const pdfRoutes = require('./src/routes/pdf'); // PDF routes
+const aiDietRoutes = require('./src/routes/aiDiet'); // AI Diet routes
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet({
@@ -80,6 +81,7 @@ app.use('/api/v1/patient-registration', patientRegistrationRoutes);
 app.use('/api/v1/diet-charts', dietChartRoutes);
 app.use('/api/v1/auth', authRoutes); // Added auth routes
 app.use('/api/v1/pdf', pdfRoutes); // Added PDF routes
+app.use('/api/v1/ai-diet', aiDietRoutes); // AI Diet routes
 
 // 404 handler
 app.use('*', (req, res) => {
