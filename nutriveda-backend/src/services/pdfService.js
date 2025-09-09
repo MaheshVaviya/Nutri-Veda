@@ -7,8 +7,9 @@ class PDFService {
   static async generateDietPlanPDF(patientData, outputPath = null) {
     return new Promise(async (resolve, reject) => {
       try {
-        // Fetch the AI-generated diet chart
-        const dietChart = await DietChart.findOne({ patientId: patientData._id }).sort({ createdAt: -1 });
+        // Fetch the AI-generated diet chart using our Firebase model
+        const dietCharts = await DietChart.findByPatient(patientData.id || patientData._id);
+        const dietChart = dietCharts && dietCharts.length > 0 ? dietCharts[0] : null;
         
         const doc = new PDFDocument({ 
           size: 'A4',
@@ -33,8 +34,13 @@ class PDFService {
         this.addHeader(doc);
         this.addPatientDetails(doc, patientData);
         
-        if (dietChart && dietChart.dietPlan) {
-          this.addAIDietPlan(doc, dietChart.dietPlan);
+        if (dietChart && (dietChart.dietPlan || dietChart.meals)) {
+          // Handle both AI-generated diet plans and regular meal charts
+          if (dietChart.dietPlan) {
+            this.addAIDietPlan(doc, dietChart.dietPlan);
+          } else {
+            this.addMealChart(doc, dietChart);
+          }
         } else {
           this.addDietPlanTemplate(doc);
         }
@@ -82,6 +88,115 @@ class PDFService {
         .stroke();
     
     doc.moveDown(2);
+  }
+
+  static addMealChart(doc, dietChart) {
+    let yPosition = doc.y + 20;
+
+    // Chart Info
+    doc.fontSize(16)
+       .fillColor('#065f46')
+       .text(`Diet Chart: ${dietChart.chartName || 'Custom Plan'}`, 50, yPosition);
+    
+    yPosition += 25;
+    doc.fontSize(11)
+       .fillColor('#374151');
+    
+    if (dietChart.instructions) {
+      doc.text(`Instructions: ${dietChart.instructions}`, 70, yPosition);
+      yPosition += 20;
+    }
+
+    // Meals
+    if (dietChart.meals && dietChart.meals.length > 0) {
+      if (yPosition > 650) {
+        doc.addPage();
+        yPosition = 50;
+      }
+
+      doc.fontSize(18)
+         .fillColor('#059669')
+         .text('Meal Plan', 50, yPosition);
+      
+      yPosition += 30;
+
+      dietChart.meals.forEach((meal, index) => {
+        // Check if we need a new page
+        if (yPosition > 600) {
+          doc.addPage();
+          yPosition = 50;
+        }
+
+        // Meal header
+        doc.fontSize(14)
+           .fillColor('#f59e0b')
+           .text(`${meal.name || `Meal ${index + 1}`}`, 50, yPosition);
+        
+        if (meal.time) {
+          doc.fontSize(10)
+             .fillColor('#6b7280')
+             .text(`Time: ${meal.time}`, 200, yPosition + 2);
+        }
+
+        yPosition += 25;
+
+        // Foods
+        if (meal.foods && meal.foods.length > 0) {
+          doc.fontSize(10)
+             .fillColor('#374151');
+          
+          meal.foods.forEach(food => {
+            if (yPosition > 750) {
+              doc.addPage();
+              yPosition = 50;
+            }
+            const quantity = food.quantity ? ` (${food.quantity} serving${food.quantity > 1 ? 's' : ''})` : '';
+            doc.text(`  • ${food.name || food.foodName || food}${quantity}`, 70, yPosition);
+            yPosition += 12;
+          });
+        }
+
+        // Meal instructions
+        if (meal.instructions) {
+          doc.fontSize(9)
+             .fillColor('#065f46')
+             .text(`💡 ${meal.instructions}`, 70, yPosition);
+          yPosition += 15;
+        }
+
+        yPosition += 20;
+      });
+    }
+
+    // Nutritional Summary
+    if (dietChart.totalNutrition) {
+      if (yPosition > 650) {
+        doc.addPage();
+        yPosition = 50;
+      }
+
+      doc.fontSize(16)
+         .fillColor('#065f46')
+         .text('Nutritional Summary', 50, yPosition);
+      
+      yPosition += 25;
+      doc.fontSize(11)
+         .fillColor('#374151');
+
+      const nutrition = dietChart.totalNutrition;
+      doc.text(`Total Calories: ${nutrition.calories || 0} kcal`, 70, yPosition);
+      yPosition += 15;
+      doc.text(`Protein: ${nutrition.protein || 0}g`, 70, yPosition);
+      yPosition += 15;
+      doc.text(`Carbohydrates: ${nutrition.carbs || 0}g`, 70, yPosition);
+      yPosition += 15;
+      doc.text(`Fat: ${nutrition.fat || 0}g`, 70, yPosition);
+      yPosition += 15;
+      if (nutrition.fiber) {
+        doc.text(`Fiber: ${nutrition.fiber}g`, 70, yPosition);
+        yPosition += 15;
+      }
+    }
   }
 
   static addAIDietPlan(doc, dietPlan) {
