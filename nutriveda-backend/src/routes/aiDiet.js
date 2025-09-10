@@ -1,12 +1,12 @@
 const express = require('express');
-const AIDietController = require('../controllers/aiDietController');
+const DietChartController = require('../controllers/aiDietController');
 
 const router = express.Router();
 
 // AI Diet Chart routes
-router.post('/generate/:patientId', AIDietController.generateDietChart);
-router.get('/patient/:patientId', AIDietController.getDietChart);
-router.put('/save/:patientId', AIDietController.saveDietChart);
+router.post('/generate/:patientId', DietChartController.generateDietChart);
+router.get('/patient/:patientId', DietChartController.getDietChart);
+router.put('/save/:patientId', DietChartController.saveDietChart);
 
 // Diet chart info endpoint
 router.get('/', (req, res) => {
